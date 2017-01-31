@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using SDL2;
+using System.Diagnostics;
 
 namespace CloudsSharp
 {
@@ -53,8 +54,6 @@ namespace CloudsSharp
 			SDL.SDL_Rect tempRect = new SDL.SDL_Rect();
 			SDL.SDL_Surface tempSurface;
 
-			//SDL.SDL_Surface SurfaceStruct = SurfaceIntPtr.Struct<SDL.SDL_Surface>(sdlTexture);
-
 			tempSurface = SurfaceIntPtr.Struct<SDL.SDL_Surface>(SDL_image.IMG_Load(sName));
 			tempRect.x = 0;
 			tempRect.y = 0;
@@ -69,14 +68,39 @@ namespace CloudsSharp
 
 			SDL.SDL_BlitSurface(ptrSurface, IntPtr.Zero, ptrBuffer, ref tempRect);
 
-			SDL.SDL_FreeSurface(tempSurface);
-
-			SDL.SDL_Surface sur;
-			sur = (SDL.SDL_Surface)Marshal.PtrToStructure(
-							textSurface,
-							typeof(SDL_Surface)
-						);
+            SDL.SDL_FreeSurface(ptrSurface);
 		}
 
-	}
+
+        public void DrawMap(GameMap gamemap, TextureManager gametexman, int xoffset, int xoffset_small)
+        {
+            SDL.SDL_Rect temp;
+            int guess;
+            int guess_small;
+
+            //HACK!!!
+            //clear the buffer to black
+            //SDL_FillRect(buffer, NULL, SDL_MapRGB(buffer->format,0,0,0));
+            //HACK!!
+
+            for (int i = 1; i < gamemap.NumLayers; i++)
+            {
+                guess_small = ((16 * xoffset + xoffset_small) / (gamemap.NumLayers - i)) % 16;
+                guess = (xoffset) / (gamemap.NumLayers - i);
+
+                for (int k = 0; k < gamemap.Height; k++)
+                {
+                    for (int j = guess; j < guess + 21; j++)
+                    {
+                        temp.x = 16 * (j - guess) - guess_small;
+                        temp.y = 16 * k;
+                        if (j < gamemap.Width)
+                            if (gamemap.Data[i][j][k] != 0)
+                                Debug.WriteLine("blarg!");
+                                //SDL_BlitSurface(gametexman->tex_list[((gamemap->data[i][j][k]) - 1)], NULL, buffer, &temp);
+                    }
+                }
+            }
+        }
+    }
 }
