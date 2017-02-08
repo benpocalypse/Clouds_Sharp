@@ -14,8 +14,9 @@ namespace CloudsSharp
 		gfont myfont;
 		*/
 
-		SDL2.SDL.SDL_Surface sScreen;
-		SDL2.SDL.SDL_Surface sBuffer;
+		private SDL2.SDL.SDL_Surface sScreen;
+		private SDL2.SDL.SDL_Surface sBuffer;
+		private Font fFont;
 
 		public RenderManager()
 		{
@@ -102,5 +103,28 @@ namespace CloudsSharp
                 }
             }
         }
+
+		public void Print(string sText, int x, int y)
+		{
+			fFont.Print(sBuffer, sText, x, y);
+		}
+
+		public void DrawPlayer(GObject theplayer, TextureManager gametexman,
+								int camera_pos, int camera_pos_small)
+		{
+			SDL2.SDL.SDL_Rect temp = new SDL.SDL_Rect();
+
+			temp.x = (16 * (theplayer.x - camera_pos)) + (theplayer.small_x - camera_pos_small);
+			temp.y = (16 * theplayer.y) + theplayer.small_y;
+
+			if (theplayer.active)
+			{
+				SDL2.SDL.SDL_BlitSurface(gametexman.tex_list[theplayer.texture_id], null, sBuffer, temp);
+
+				#if (GAMEDEBUG)
+					circleColor(buffer, temp.x + 8, temp.y + 8, 8, 250);
+				#endif
+			}
+		}
     }
 }

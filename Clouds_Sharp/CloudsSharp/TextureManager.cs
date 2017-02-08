@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CloudsSharp
 {
-    class TextureManager
+    public class TextureManager
     {
     }
 }

@@ -38,6 +38,8 @@
     <Compile Include="GameManager.cs" />
     <Compile Include="RenderManager.cs" />
     <Compile Include="TextureManager.cs" />
+    <Compile Include="Font.cs" />
+    <Compile Include="GObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SDL2-CS.csproj">
