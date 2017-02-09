@@ -2,6 +2,8 @@
 using System.Runtime.InteropServices;
 using SDL2;
 using System.Diagnostics;
+using static SDL2.SDL;
+using System.Collections.Generic;
 
 namespace CloudsSharp
 {
@@ -52,7 +54,7 @@ namespace CloudsSharp
 
 		public void DrawScreen(string sName)
 		{
-			SDL.SDL_Rect tempRect = new SDL.SDL_Rect();
+            SDL.SDL_Rect tempRect = new SDL.SDL_Rect();
 			SDL.SDL_Surface tempSurface;
 
 			tempSurface = SurfaceIntPtr.Struct<SDL.SDL_Surface>(SDL_image.IMG_Load(sName));
@@ -112,19 +114,74 @@ namespace CloudsSharp
 		public void DrawPlayer(GObject theplayer, TextureManager gametexman,
 								int camera_pos, int camera_pos_small)
 		{
-			SDL2.SDL.SDL_Rect temp = new SDL.SDL_Rect();
+			SDL_Rect temp = new SDL_Rect();
 
 			temp.x = (16 * (theplayer.x - camera_pos)) + (theplayer.small_x - camera_pos_small);
 			temp.y = (16 * theplayer.y) + theplayer.small_y;
 
 			if (theplayer.active)
 			{
-				SDL2.SDL.SDL_BlitSurface(gametexman.tex_list[theplayer.texture_id], null, sBuffer, temp);
+                IntPtr ptrTexture = new IntPtr();
+                IntPtr ptrBuffer = new IntPtr();
+                SDL_Rect tmpRect = new SDL_Rect();
+
+                Marshal.StructureToPtr(gametexman.lsTextureList[theplayer.texture_id], ptrTexture, false);
+                Marshal.StructureToPtr(sBuffer, ptrBuffer, false);
+
+                SDL.SDL_BlitSurface(ptrTexture, ref tmpRect, ptrBuffer, ref temp);
 
 				#if (GAMEDEBUG)
 					circleColor(buffer, temp.x + 8, temp.y + 8, 8, 250);
 				#endif
 			}
 		}
+
+
+        public void DrawEnemies(List<GObject> theenemies, TextureManager gametexman, int numenemies,
+                                 int camera_pos, int camera_pos_small)
+        {
+            SDL_Rect temp = new SDL_Rect();
+
+            for (int i = 0; i < numenemies; i++)
+            {
+                if (theenemies[i].active)
+                {
+                    IntPtr ptrTexture = new IntPtr();
+                    IntPtr ptrBuffer = new IntPtr();
+                    SDL_Rect tmpRect = new SDL_Rect();
+
+                    Marshal.StructureToPtr(gametexman.lsTextureList[theenemies[i].texture_id], ptrTexture, false);
+                    Marshal.StructureToPtr(sBuffer, ptrBuffer, false);
+
+                    temp.x = (16 * (theenemies[i].x - camera_pos)) + (theenemies[i].small_x - camera_pos_small);
+                    temp.y = (16 * (theenemies[i].y)) + theenemies[i].small_y;
+
+                    SDL_BlitSurface(ptrTexture, ref tmpRect, ptrBuffer, ref temp);
+
+                    #if GAMEDEBUG
+                        circleColor(buffer, temp.x + 8, temp.y + 8, 8, 250);
+                    #endif
+                }
+            }
+        }
+
+        /*
+        public void drawbullets(gobject* thebullets, gtexmanager* gametexman,
+                                int camera_pos, int camera_pos_small)
+        {
+            SDL_Rect temp;
+            for (int i = 0; i < MAXBULLETS; i++)
+            {
+                if (thebullets[i].active)
+                {
+                    temp.x = (16 * (thebullets[i].x - camera_pos) + thebullets[i].small_x - camera_pos_small);
+                    temp.y = (16 * (thebullets[i].y)) + thebullets[i].small_y;
+                    SDL_BlitSurface(gametexman->tex_list[thebullets[i].texture_id], NULL, buffer, &temp);
+                    if (GAMEDEBUG)
+                        circleColor(buffer, temp.x + 8, temp.y + 8, 5, 250);
+                }
+            }
+        }
+        */
     }
 }
