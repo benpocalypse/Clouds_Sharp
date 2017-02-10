@@ -9,22 +9,39 @@ namespace CloudsSharp
 {
 	public class RenderManager
 	{
-		/*
-		//variable(s)
-		SDL_Surface* buffer;
-		SDL_Surface* screen;
-		gfont myfont;
-		*/
-
-		private SDL2.SDL.SDL_Surface sScreen;
-		private SDL2.SDL.SDL_Surface sBuffer;
-		private Font fFont;
+		private SDL_Surface sScreen;
+		private SDL_Surface sBuffer = new SDL_Surface();
+        private IntPtr sdlRenderer = new IntPtr();
+        private IntPtr sdlWindow = new IntPtr();
+        private Font fFont;
 
 		public RenderManager()
 		{
-			SDL.SDL_Init(SDL.SDL_INIT_EVERYTHING);
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);// | SDL_INIT_TIMER | SDL_INIT_AUDIO);//.SDL_INIT_EVERYTHING);
+            /*
+            IntPtr sdlWindow = SDL.SDL_CreateWindow("Test SDL",
+                                              100,
+                                              100,
+                                              800,
+                                              600,
+                                              SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                                              SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+            */
 
-			/*
+            SDL_CreateWindowAndRenderer(640, 480, SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN, out sdlWindow, out sdlRenderer);
+
+            //IntPtr sdlTexture = SDL.SDL_CreateTexture(sdlRenderer, SDL.SDL_PIXELFORMAT_ARGB8888, Convert.ToInt16(SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET), 320, 240);
+
+            SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+            SDL.SDL_RenderSetLogicalSize(sdlRenderer, 320, 240);
+
+            SDL.SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+            SDL.SDL_RenderClear(sdlRenderer);
+            SDL.SDL_RenderPresent(sdlRenderer);
+
+            //SDL_SetWindowIcon(sdlWindow, SDL_image.IMG_Load("data/misc/icon.png"));
+
+            /*
 			if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0)
 			{
 				printf("Unable to initialize SDL: %s\n", SDL_GetError());
@@ -50,7 +67,7 @@ namespace CloudsSharp
 			else
 				return 1;
 			*/
-		}
+        }
 
 		public void DrawScreen(string sName)
 		{
@@ -165,23 +182,140 @@ namespace CloudsSharp
             }
         }
 
-        /*
-        public void drawbullets(gobject* thebullets, gtexmanager* gametexman,
+        
+        public void DrawBullets(List<GObject> thebullets, TextureManager gametexman,
                                 int camera_pos, int camera_pos_small)
         {
-            SDL_Rect temp;
-            for (int i = 0; i < MAXBULLETS; i++)
+            SDL_Rect temp = new SDL_Rect();
+            for (int i = 0; i < thebullets.Count; i++)
             {
                 if (thebullets[i].active)
                 {
+                    IntPtr ptrTexture = new IntPtr();
+                    IntPtr ptrBuffer = new IntPtr();
+                    SDL_Rect tmpRect = new SDL_Rect();
+
+                    Marshal.StructureToPtr(gametexman.lsTextureList[thebullets[i].texture_id], ptrTexture, false);
+                    Marshal.StructureToPtr(sBuffer, ptrBuffer, false);
+
                     temp.x = (16 * (thebullets[i].x - camera_pos) + thebullets[i].small_x - camera_pos_small);
                     temp.y = (16 * (thebullets[i].y)) + thebullets[i].small_y;
-                    SDL_BlitSurface(gametexman->tex_list[thebullets[i].texture_id], NULL, buffer, &temp);
-                    if (GAMEDEBUG)
+
+                    SDL_BlitSurface(ptrTexture, ref tmpRect, ptrBuffer, ref temp);
+
+                    #if GAMEDEBUG
                         circleColor(buffer, temp.x + 8, temp.y + 8, 5, 250);
+                    #endif
                 }
             }
         }
-        */
+
+        public void DrawExplosion(List<Explosion> explosions)
+        {
+            SDL_Rect temp = new SDL_Rect();
+            SDL_Surface surf;
+
+            for (int i = 0; i < explosions.Count; i++)
+            {
+                for (int j = 0; j < explosions[i].bits.Count; j++)
+                {
+                    if (explosions[i].active)
+                    {
+                        if (explosions[i].bits[j].active)
+                        {
+                            temp.x = explosions[i].bits[j].x;
+                            temp.y = explosions[i].bits[j].y;
+
+                            /*
+                            surf = SDL_CreateRGBSurface(SDL_HWSURFACE, explosions[i].bits[j].health,
+                                                        explosions[i].bits[j].health, 32, 0, 0, 0, 0);
+                            
+                            circleRGBA(buffer, temp.x, temp.y, explosions[i].bits[j].health, 255, 90, 0, 125);
+
+                            SDL_FillRect(surf, NULL, SDL_MapRGB(surf->format, (explosions[i].bits[j].health + 5) * 25, (explosions[i].bits[j].health + 5) * 9, 0));
+                            SDL_BlitSurface(surf, NULL, buffer, &temp);
+                            SDL_FreeSurface(surf);
+                            */
+                        }
+                    }
+                }
+            }
+        }
+
+        public void DrawPowerup(PowerupManager gpower, TextureManager gametexman)
+        {
+            SDL_Rect temp = new SDL_Rect();
+
+            for (int i = 0; i < Globals.MAXPOWERUPS; i++)
+            {
+                if (gpower.powerups[i].active)
+                {
+                    IntPtr ptrTexture = new IntPtr();
+                    IntPtr ptrBuffer = new IntPtr();
+                    SDL_Rect tmpRect = new SDL_Rect();
+
+                    Marshal.StructureToPtr(gametexman.lsTextureList[gpower.powerups[i].texture_id], ptrTexture, false);
+                    Marshal.StructureToPtr(sBuffer, ptrBuffer, false);
+
+                    temp.x = gpower.powerups[i].x;
+                    temp.y = gpower.powerups[i].y;
+                    SDL_SetSurfaceAlphaMod(ptrTexture, (byte)(gpower.powerups[i].health + 105));
+
+                    SDL_BlitSurface(ptrTexture, ref tmpRect, ptrBuffer, ref temp);
+                }
+            }
+        }
+
+        public void DrawHud(GObject obj, Player player)
+        {//^ //_
+            char []buffer = new char[5];
+
+            //draw Health meter
+            for (int i = 0; i < 10; i++)
+            {
+                if (((10 * obj.health) / Globals.PLAYERBASEHEALTH) > ((10 * i) / Globals.PLAYERBASEHEALTH))
+                    Print("_", 8 + (2 * i), 2);
+                else
+                    Print("`", 8 + (2 * i), 2);
+            }
+
+            //draw power meter
+            for (int i = 0; i < 10; i++)
+            {
+                if (((10 * player.Power) / Globals.MAXPOWER) > ((i)))
+                    Print("^", 8 + (2 * i), 8);
+                else
+                    Print("`", 8 + (2 * i), 8);
+            }
+
+            //draw spare lives
+            for (int i = 0; i < player.Lives; i++)
+            {
+                Print(";", 38 + (8 * i), 5);
+            }
+
+            //show the score
+            Print("Score:", 230, 2);
+            Print(player.Score.ToString(), 278, 2);
+        }
+
+        public void Flip()
+        {
+            IntPtr ptrScreen = new IntPtr();
+            IntPtr ptrBuffer = new IntPtr();
+            SDL_Rect tmpSrcRect = new SDL_Rect();
+            SDL_Rect tmpDstRect = new SDL_Rect();
+
+            Marshal.StructureToPtr(sScreen, ptrScreen, false);
+            Marshal.StructureToPtr(sBuffer, ptrBuffer, false);
+
+            //temp = zoomSurface(buffer, 2, 2, 0);
+            SDL_BlitSurface(ptrBuffer, ref tmpSrcRect, sdlRenderer, ref tmpDstRect);
+
+            SDL.SDL_RenderClear(sdlRenderer);
+            SDL.SDL_RenderPresent(sdlRenderer);
+            //SDL_FreeSurface(temp);
+            //SDL_Flip(screen);
+        }
     }
 }

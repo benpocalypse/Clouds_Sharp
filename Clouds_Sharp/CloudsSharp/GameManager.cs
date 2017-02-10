@@ -1,34 +1,47 @@
 ﻿using System;
 using SDL2;
+using System.Collections.Generic;
 
 namespace CloudsSharp
 {
 	public class GameManager
 	{
-		/*
+        /*
 		 gobject *enemies;
-    gobject player;
-    gobject *bullets;
-    gobject *ebullets1;
-    gobject *ebullets2;
-    gobject *ebullets3;
-    gobject *ebullets4;
-    gplayer playerstats;
-    gmap game_map;
-    gtexmanager texman;
-    grendermanager gamerenderer;
-    glogicmanager gamelogic;
-    ginputhandler gameinput;
-    gpowerupmanager gpowerup;
-    gsoundmanager smanager;
-    bool running;
-    SDL_Event gameevent;
-    int gamestate;
-	  int fpscount;
-	  int cinemacount;
+         gobject player;
+         gobject *bullets;
+         gobject *ebullets1;
+         gobject *ebullets2;
+         gobject *ebullets3;
+         gobject *ebullets4;
+         gplayer playerstats;
+         gmap game_map;
+         gtexmanager texman;
+         grendermanager gamerenderer;
+         glogicmanager gamelogic;
+         ginputhandler gameinput;
+         gpowerupmanager gpowerup;
+         gsoundmanager smanager;
+         bool running;
+         SDL_Event gameevent;
+         int gamestate;
+	     int fpscount;
+	     int cinemacount;
 	  */
+        private List<GObject> enemies;
+        private GObject player;
+        private List<GObject> bullets;
+        private List<GObject> ebullets1;
+        private List<GObject> ebullets2;
+        private List<GObject> ebullets3;
+        private List<GObject> ebullets4;
+        private Player playerstats;
+        private GameMap gamemap;
+        private TextureManager texman;
+        private RenderManager gamerenderer;
+        private LogicManager gamelogic;
 
-		public bool bRunning = true;
+        public bool bRunning = true;
 
 		public enum Game_State
 		{
